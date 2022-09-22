@@ -20,6 +20,7 @@ int main(int argc, char** argv)
     int p = 1;
     if(argc == 4) 
         p = atoi(argv[3]);
+	omp_set_num_threads(p);	
 
     // allocate memory
     int* values = new int[n];
@@ -56,6 +57,7 @@ int main(int argc, char** argv)
     for(int j = 1; j <= n; j++) {
         wj = weights[j];
         vj = values[j];
+	#pragma omp parallel for
         for(int i = 1; i <= W; i++) {
             if( i < wj )
                 K[lin(i,j,W+1,n+1)] = K[lin(i,j-1,W+1,n+1)];
@@ -75,10 +77,10 @@ int main(int argc, char** argv)
     // }
 
     // report value of optimal knapsack
-    cout << "Opt value: " << K[lin(W,n,W+1,n+1)] << endl;
+//    cout << "Opt value: " << K[lin(W,n,W+1,n+1)] << endl;
 
     // report timing
-    cout << "Time: " << elapsed << "s" << endl;
+    cout << elapsed << endl;
 
     // free memory
     delete[] K;

@@ -1,6 +1,6 @@
 #include <iostream>
 #include <algorithm>
-#include <omp>
+#include <omp.h>
 using namespace std;
 
 // function for linearizing row/col indices
@@ -20,6 +20,7 @@ int main(int argc, char** argv)
     int p = 1;
     if(argc == 4) 
         p = atoi(argv[3]);
+	omp_set_num_threads(p);
 
     // allocate memory
     int* values = new int[n];
@@ -45,18 +46,26 @@ int main(int argc, char** argv)
 
     double start = omp_get_wtime();
 
+    int* prev = new int[(W+1)];
     // initialize base cases
-    for(int j = 0; j < n; j++) 
+    for(int j = 0; j < n; j++) {
         K[j] = 0;
+	prev[j] = 0;
+    }
 
     // fill in DP table
     int wj, vj;
     for(int j = 1; j <= n; j++) {
         wj = weights[j];
         vj = values[j];
-        for(int i = W; i>=wj; i--) {
-	    K[i] = max(K[i], vj + K[i-wj]);
+	#pragma omp parallel for
+        for(int i = 1; i<=W; i++) {
+	    if (i < wj)
+		K[i] = prev[i];
+	    else
+	    	K[i] = max(prev[i], vj + prev[i-wj]);
         }
+	swap(K,prev);
     }
 
     double elapsed = omp_get_wtime() - start;

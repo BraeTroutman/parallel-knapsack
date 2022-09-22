@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     // allocate memory
     int* values = new int[n];
     int* weights = new int[n];
-    int* K = new int[(n+1)*(W+1)];
+    int* K = new int[(W+1)];
 
     // randomly populate weights and values 
     // * always do this sequentially for reproducibility
@@ -47,20 +47,15 @@ int main(int argc, char** argv)
 
     // initialize base cases
     for(int j = 0; j < n; j++) 
-        K[lin(0,j,W+1,n+1)] = 0;
-    for(int i = 1; i < W; i++)
-        K[lin(i,0,W+1,n+1)] = 0;
+        K[j] = 0;
 
     // fill in DP table
     int wj, vj;
     for(int j = 1; j <= n; j++) {
         wj = weights[j];
         vj = values[j];
-        for(int i = 1; i <= W; i++) {
-            if( i < wj )
-                K[lin(i,j,W+1,n+1)] = K[lin(i,j-1,W+1,n+1)];
-            else 
-                K[lin(i,j,W+1,n+1)] = max(K[lin(i-wj,j-1,W+1,n+1)]+ vj,K[lin(i,j-1,W+1,n+1)]);
+        for(int i = W; i>=wj; i--) {
+	    K[i] = max(K[i], vj + K[i-wj]);
         }
     }
 
@@ -75,7 +70,7 @@ int main(int argc, char** argv)
     // }
 
     // report value of optimal knapsack
-    cout << "Opt value: " << K[lin(W,n,W+1,n+1)] << endl;
+    cout << "Opt value: " << K[W] << endl;
 
     // report timing
     cout << "Time: " << elapsed << "s" << endl;
